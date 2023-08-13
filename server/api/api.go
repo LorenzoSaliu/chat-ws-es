@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// var userCollection *mongo.Collection = db.GetCollection("users")
 var validate = validator.New()
 var psql = db.DB.GetDB()
 
@@ -151,171 +150,38 @@ func LogInHandler(c *fiber.Ctx) error {
 	return Response(c, "Authentication Failed: ID or Password is incorrect", http.StatusUnauthorized, "Authentication Failed", "X-Correlation-Id")
 }
 
-// func GetUsersHandler(c *fiber.Ctx) error {
-// 	var checkToken models.User
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
-
-// 	token := c.GetReqHeaders()["Token"]
-// 	if token == "" {
-// 		return c.Status(http.StatusUnauthorized).JSON(models.ErrorResponse{
-// 			Meta: models.Meta{
-// 				Status:        http.StatusNotFound,
-// 				Message:       "Unauthorized",
-// 				TimeStamp:     time.Now(),
-// 				CorrelationId: "X-Correlation-Id"},
-// 			Errors: &fiber.Map{"data": "Unauthorized"}})
-// 	}
-
-// 	err := userCollection.FindOne(ctx, bson.M{"token": token}).Decode(&checkToken)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			return c.Status(http.StatusNotFound).JSON(models.ErrorResponse{
-// 				Meta: models.Meta{
-// 					Status:        http.StatusNotFound,
-// 					Message:       "no data found",
-// 					TimeStamp:     time.Now(),
-// 					CorrelationId: "X-Correlation-Id"},
-// 				Errors: &fiber.Map{"data": err.Error()}})
-// 		}
-// 		return c.Status(http.StatusInternalServerError).JSON(models.ErrorResponse{
-// 			Meta: models.Meta{
-// 				Status:        http.StatusInternalServerError,
-// 				Message:       "error finding data process",
-// 				TimeStamp:     time.Now(),
-// 				CorrelationId: "X-Correlation-Id"},
-// 			Errors: &fiber.Map{"data": err.Error()}})
-// 	}
-
-// 	if checkToken.UserType == "ADMIN" {
-
-// 		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
-// 		if err != nil || recordPerPage < 1 {
-// 			recordPerPage = 10
-// 		}
-// 		page, err := strconv.Atoi(c.Query("page"))
-// 		if err != nil || page < 1 {
-// 			page = 1
-// 		}
-// 		startIndex, err := strconv.Atoi(c.Query("startIndex"))
-// 		if err != nil || startIndex < 1 {
-// 			startIndex = (page - 1) * recordPerPage
-// 		}
-
-// 		matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
-// 		groupStage := bson.D{{Key: "$group", Value: bson.D{
-// 			{Key: "_id", Value: bson.D{{Key: "_id", Value: "null"}}},
-// 			{Key: "total_count", Value: bson.D{{Key: "$sum", Value: 1}}},
-// 			{Key: "data", Value: bson.D{{Key: "$push", Value: "$$ROOT"}}},
-// 		}}}
-// 		projectStage := bson.D{{Key: "$project", Value: bson.D{
-// 			{Key: "_id", Value: 0},
-// 			{Key: "total_count", Value: 1},
-// 			{Key: "user_items", Value: bson.D{{Key: "$slice", Value: []interface{}{"data", startIndex, recordPerPage}}}},
-// 		}}}
-
-// 		result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
-// 			matchStage,
-// 			groupStage,
-// 			projectStage,
-// 		})
-// 		if err != nil {
-// 			return c.Status(http.StatusInternalServerError).JSON(models.ErrorResponse{
-// 				Meta: models.Meta{
-// 					Status:        http.StatusInternalServerError,
-// 					Message:       "error finding data process",
-// 					TimeStamp:     time.Now(),
-// 					CorrelationId: "X-Correlation-Id"},
-// 				Errors: &fiber.Map{"data": err.Error()}})
-// 		}
-
-// 		var users []bson.M
-// 		if err := result.All(ctx, &users); err != nil {
-// 			return c.Status(http.StatusInternalServerError).JSON(models.ErrorResponse{
-// 				Meta: models.Meta{
-// 					Status:        http.StatusInternalServerError,
-// 					Message:       "error finding data process",
-// 					TimeStamp:     time.Now(),
-// 					CorrelationId: "X-Correlation-Id"},
-// 				Errors: &fiber.Map{"data": err.Error()}})
-// 		}
-
-// 		return c.Status(http.StatusOK).JSON(models.SuccessResponse{
-// 			Meta: models.Meta{
-// 				Status:        http.StatusOK,
-// 				Message:       "OK",
-// 				TimeStamp:     time.Now(),
-// 				CorrelationId: "X-Correlation-Id"},
-// 			Result: users})
-
-// 	}
-
-// 	return c.Status(http.StatusUnauthorized).JSON(models.ErrorResponse{
-// 		Meta: models.Meta{
-// 			Status:        http.StatusUnauthorized,
-// 			Message:       "Unauthorized",
-// 			TimeStamp:     time.Now(),
-// 			CorrelationId: "X-Correlation-Id"},
-// 		Errors: &fiber.Map{"data": "Unauthorized"}})
-// }
-
 func GetUserHandler(c *fiber.Ctx) error {
 
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
+	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	// var result models.User
-	// token := c.GetReqHeaders()["Token"]
-	// user_id := c.Params("user_id")
-	// if token == "" {
-	// 	log.Panic("token is required")
-	// 	return Response(c, "Unauthorized", http.StatusUnauthorized, "Unauthorized", "X-Correlation-Id")
-	// }
+	var user models.User
+	token := c.GetReqHeaders()["Token"]
+	user_id := c.Params("user_id")
+	if token == "" {
+		log.Panic("token is required")
+		return Response(c, "Unauthorized", http.StatusUnauthorized, "Unauthorized", "X-Correlation-Id")
+	}
 
-	// err = userCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&result)
-	// if err != nil {
-	// 	if err == mongo.ErrNoDocuments {
-	// 		return c.Status(http.StatusNotFound).JSON(models.ErrorResponse{
-	// 			Meta: models.Meta{
-	// 				Status:        http.StatusNotFound,
-	// 				Message:       "no data found",
-	// 				TimeStamp:     time.Now(),
-	// 				CorrelationId: "X-Correlation-Id"},
-	// 			Errors: &fiber.Map{"data": err.Error()}})
-	// 	}
-	// 	return c.Status(http.StatusInternalServerError).JSON(models.ErrorResponse{
-	// 		Meta: models.Meta{
-	// 			Status:        http.StatusInternalServerError,
-	// 			Message:       "error finding data process",
-	// 			TimeStamp:     time.Now(),
-	// 			CorrelationId: "X-Correlation-Id"},
-	// 		Errors: &fiber.Map{"data": err.Error()}})
-	// }
+	if err := psql.QueryRow("SELECT * FROM users WHERE user_id = $1;", user_id).Scan(
+		&user.ID,
+		&user.UserID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.Token,
+		&user.RefreshToken,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	); err != nil {
+		log.Panicln(err)
+		return Response(c, err.Error(), http.StatusNotFound, "No Data Found", "X-Correlation-Id")
+	}
 
-	// if result.UserType == "USER" && result.Token == token {
-	// 	return c.Status(http.StatusOK).JSON(models.SuccessResponse{
-	// 		Meta: models.Meta{
-	// 			Status:        http.StatusOK,
-	// 			Message:       "OK",
-	// 			TimeStamp:     time.Now(),
-	// 			CorrelationId: "X-Correlation-Id"},
-	// 		Result: result})
-	// }
-	// if result.UserType == "ADMIN" {
-	// 	return c.Status(http.StatusOK).JSON(models.SuccessResponse{
-	// 		Meta: models.Meta{
-	// 			Status:        http.StatusOK,
-	// 			Message:       "OK",
-	// 			TimeStamp:     time.Now(),
-	// 			CorrelationId: "X-Correlation-Id"},
-	// 		Result: result})
-	// }
-	// return c.Status(http.StatusUnauthorized).JSON(models.ErrorResponse{
-	// 	Meta: models.Meta{
-	// 		Status:        http.StatusUnauthorized,
-	// 		Message:       "Unauthorized",
-	// 		TimeStamp:     time.Now(),
-	// 		CorrelationId: "X-Correlation-Id"},
-	// 	Errors: &fiber.Map{"data": "Unauthorized"}})
-	return nil
+	if user.Token == token {
+		return Response(c, user, http.StatusOK, "OK", "X-Correlation-Id")
+	}
+
+	return Response(c, "Unauthorized", http.StatusInternalServerError, "Unauthorized", "X-Correlation-Id")
 }
