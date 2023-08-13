@@ -143,7 +143,7 @@ func LogInHandler(c *fiber.Ctx) error {
 			return Response(c, err.Error(), http.StatusInternalServerError, "DB Update tokens Error", "X-Correlation-Id")
 		}
 
-		return Response(c, &fiber.Map{"token": user.Token, "user_id": user.UserID}, http.StatusOK, "OK", "X-Correlation-Id")
+		return Response(c, &fiber.Map{"token": token, "user_id": user.UserID}, http.StatusOK, "OK", "X-Correlation-Id")
 	}
 
 	log.Fatal("Authentication Failed: ID or Password is incorrect")
